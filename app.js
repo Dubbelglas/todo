@@ -247,7 +247,7 @@
 
     function renderDescription(description) {
         const renderLinkedText = (text) => {
-            const urlPattern = /(?:\bhttps?:\/\/[^\s<]+|\b(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:nl|com|de|org|fr|co\.uk)(?:\/[^\s<]*)?)/gi;
+            const urlPattern = /(?:\bhttps?:\/\/[^\s<]+|\bwww\.[^\s<]+|\b(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:nl|com|de|org|fr|co\.uk)(?:\/[^\s<]*)?)/gi;
             let result = '';
             let lastIndex = 0;
             for (const match of String(text).matchAll(urlPattern)) {
