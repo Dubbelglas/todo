@@ -252,27 +252,39 @@
 
     function renderDescription(description) {
         const renderLinkedText = (text) => {
+            const source = String(text);
             const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const prefixPattern = URL_PREFIXES.map(escapeRegex).join('|');
             const suffixPattern = [...URL_SUFFIXES].sort((a, b) => b.length - a.length).map(escapeRegex).join('|');
             const urlPattern = new RegExp(`(?:\\b(?:${prefixPattern})[^\\s<]+|\\b(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+(?:${suffixPattern})(?:/[^\\s<]*)?)`, 'gi');
+            const emailPattern = /\b[a-z0-9_+-](?:[a-z0-9.!#$%&'*+/=?^_`{|}~-]*[a-z0-9_+-])?@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}\b/gi;
+            const renderUrls = (segment) => {
+                let result = '';
+                let lastIndex = 0;
+                for (const match of segment.matchAll(urlPattern)) {
+                    let url = match[0];
+                    let trailing = '';
+                    while (/[.,!?;:)]$/.test(url)) {
+                        trailing = url.slice(-1) + trailing;
+                        url = url.slice(0, -1);
+                    }
+                    if (!url) continue;
+                    const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+                    const start = match.index;
+                    result += escapeHtml(segment.slice(lastIndex, start));
+                    result += `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>${escapeHtml(trailing)}`;
+                    lastIndex = start + match[0].length;
+                }
+                return result + escapeHtml(segment.slice(lastIndex));
+            };
             let result = '';
             let lastIndex = 0;
-            for (const match of String(text).matchAll(urlPattern)) {
-                let url = match[0];
-                let trailing = '';
-                while (/[.,!?;:)]$/.test(url)) {
-                    trailing = url.slice(-1) + trailing;
-                    url = url.slice(0, -1);
-                }
-                if (!url) continue;
-                const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
-                const start = match.index;
-                result += escapeHtml(String(text).slice(lastIndex, start));
-                result += `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>${escapeHtml(trailing)}`;
-                lastIndex = start + match[0].length;
+            for (const match of source.matchAll(emailPattern)) {
+                result += renderUrls(source.slice(lastIndex, match.index));
+                result += `<button type="button" class="email-link" data-email="${escapeHtml(match[0])}" title="Copy email address">${escapeHtml(match[0])}</button>`;
+                lastIndex = match.index + match[0].length;
             }
-            return result + escapeHtml(String(text).slice(lastIndex));
+            return result + renderUrls(source.slice(lastIndex));
         };
         const lines = String(description).replace(/\r\n?/g, '\n').split('\n');
         const blocks = [];
@@ -341,6 +353,21 @@
         }
         return blocks.join('');
     }
+
+    document.addEventListener('click', async (event) => {
+        const emailButton = event.target instanceof Element ? event.target.closest('.email-link') : null;
+        if (!emailButton) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        try {
+            await navigator.clipboard.writeText(emailButton.dataset.email);
+            showConfirmation('Email address copied');
+        } catch (error) {
+            showConfirmation('Unable to copy email address');
+        }
+    }, true);
 
     function updateNewCategoryVisibility() {
         const showNewCategory = categorySelect.value === '__new__';
