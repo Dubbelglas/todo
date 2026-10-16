@@ -106,6 +106,141 @@
         }
     }
 
+    function speakCompletionPraise() {
+        if (!('speechSynthesis' in window)) return;
+
+        const utterance = new SpeechSynthesisUtterance('Proper good job mate!');
+        utterance.lang = 'en-GB';
+        utterance.rate = 1.08;
+        utterance.pitch = 1.18;
+        utterance.volume = 1;
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find((voice) =>
+            /^en-GB/i.test(voice.lang) && /male|daniel|george|ryan|oliver|arthur/i.test(voice.name));
+        if (preferredVoice) utterance.voice = preferredVoice;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function playSadTrombone() {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        try {
+            const audioContext = new AudioContextClass();
+            const oscillator = audioContext.createOscillator();
+            const filter = audioContext.createBiquadFilter();
+            const volume = audioContext.createGain();
+            const start = audioContext.currentTime;
+            const notes = [233.1, 220, 207.7, 196];
+            const noteLength = 0.24;
+            const harmonicTones = new Float32Array(9);
+            const harmonicLevels = new Float32Array(9);
+            for (let harmonic = 1; harmonic < harmonicLevels.length; harmonic += 1) {
+                harmonicLevels[harmonic] = 1 / harmonic ** 1.35;
+            }
+
+            oscillator.setPeriodicWave(audioContext.createPeriodicWave(harmonicTones, harmonicLevels));
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1500, start);
+            filter.frequency.exponentialRampToValueAtTime(650, start + 1.2);
+            filter.Q.value = 2.2;
+            volume.gain.setValueAtTime(0.0001, start);
+            notes.forEach((frequency, index) => {
+                const noteStart = start + index * noteLength;
+                const isFinalNote = index === notes.length - 1;
+                const noteEnd = noteStart + (isFinalNote ? 0.95 : noteLength);
+                oscillator.frequency.setValueAtTime(frequency * 1.025, noteStart);
+                oscillator.frequency.exponentialRampToValueAtTime(frequency, noteStart + 0.09);
+                if (isFinalNote) {
+                    oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.82, noteEnd - 0.06);
+                }
+                volume.gain.setValueAtTime(0.0001, noteStart);
+                volume.gain.linearRampToValueAtTime(isFinalNote ? 0.2 : 0.15, noteStart + 0.025);
+                volume.gain.setTargetAtTime(isFinalNote ? 0.13 : 0.0001, noteEnd - (isFinalNote ? 0.16 : 0.035), isFinalNote ? 0.25 : 0.035);
+                if (isFinalNote) {
+                    volume.gain.setTargetAtTime(0.0001, noteEnd - 0.06, 0.055);
+                }
+            });
+
+            oscillator.connect(filter);
+            filter.connect(volume);
+            volume.connect(audioContext.destination);
+            oscillator.start(start);
+            oscillator.stop(start + (notes.length - 1) * noteLength + 1.05);
+            window.setTimeout(() => audioContext.close(), 2400);
+        } catch (error) {
+            // Audio is optional; task updates still work without it.
+        }
+    }
+
+    function showConfetti() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (!context) return;
+        canvas.setAttribute('aria-hidden', 'true');
+        Object.assign(canvas.style, {
+            position: 'fixed',
+            inset: '0',
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: '1300',
+        });
+        document.body.append(canvas);
+
+        const scale = window.devicePixelRatio || 1;
+        const resize = () => {
+            canvas.width = Math.floor(window.innerWidth * scale);
+            canvas.height = Math.floor(window.innerHeight * scale);
+            context.setTransform(scale, 0, 0, scale, 0, 0);
+        };
+        resize();
+        const colors = ['#facc15', '#84cc16', '#38bdf8', '#f472b6', '#fb923c', '#a78bfa'];
+        const pieces = Array.from({ length: 130 }, () => ({
+            x: Math.random() * window.innerWidth,
+            y: -20 - Math.random() * window.innerHeight * 0.35,
+            width: 5 + Math.random() * 7,
+            height: 7 + Math.random() * 10,
+            speed: 2.5 + Math.random() * 4,
+            drift: (Math.random() - 0.5) * 2.5,
+            rotation: Math.random() * Math.PI,
+            spin: (Math.random() - 0.5) * 0.18,
+            color: colors[Math.floor(Math.random() * colors.length)],
+        }));
+        const startedAt = performance.now();
+        const draw = (now) => {
+            const elapsed = now - startedAt;
+            context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            for (const piece of pieces) {
+                piece.x += piece.drift;
+                piece.y += piece.speed;
+                piece.rotation += piece.spin;
+                context.save();
+                context.translate(piece.x, piece.y);
+                context.rotate(piece.rotation);
+                context.fillStyle = piece.color;
+                context.fillRect(-piece.width / 2, -piece.height / 2, piece.width, piece.height);
+                context.restore();
+            }
+            if (elapsed < 2200) {
+                requestAnimationFrame(draw);
+            } else {
+                window.removeEventListener('resize', resize);
+                canvas.remove();
+            }
+        };
+        window.addEventListener('resize', resize);
+        requestAnimationFrame(draw);
+    }
+
+    function celebrateTaskCompletion() {
+        speakCompletionPraise();
+        showConfetti();
+    }
+
     function getDeadlineColorClass(deadline) {
         const [year, month, day] = deadline.split('-').map(Number);
         const dueDate = Date.UTC(year, month - 1, day);
@@ -487,6 +622,8 @@
         getDisplayedTasks,
         render,
         showConfirmation,
+        celebrateTaskCompletion,
+        playSadTrombone,
         updateCategoryValidation,
         attemptCategoryValidation,
         updateNewCategoryVisibility,
