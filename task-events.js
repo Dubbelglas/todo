@@ -238,11 +238,6 @@ for (const taskList of [list, periodicList]) taskList.addEventListener('change',
     }
 
     task.completed = checkbox.checked;
-    if (checkbox.checked) {
-        window.TodoApp.celebrateTaskCompletion();
-    } else {
-        window.TodoApp.playSadTrombone();
-    }
     saveTasks();
     render();
 });
