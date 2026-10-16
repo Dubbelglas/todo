@@ -1,4 +1,9 @@
 (() => {
+    const URL_PREFIXES = ['https://', 'http://', 'www.'];
+    const URL_SUFFIXES = [
+        'com', 'org', 'net', 'edu', 'gov', 'mil', 'int', 'info', 'biz', 'name', 'pro', 'xyz', 'online', 'site', 'app', 'dev', 'tech', 'store', 'shop', 'blog', 'cloud', 'io', 'ai', 'co', 'me', 'tv', 'us', 'uk', 'ca', 'au', 'nz', 'ie', 'de', 'fr', 'nl', 'be', 'lu', 'ch', 'at', 'es', 'pt', 'it', 'se', 'no', 'dk', 'fi', 'is', 'pl', 'cz', 'sk', 'hu', 'ro', 'bg', 'gr', 'tr', 'ru', 'ua', 'il', 'in', 'cn', 'jp', 'kr', 'tw', 'hk', 'sg', 'my', 'id', 'th', 'vn', 'ph', 'br', 'mx', 'ar', 'cl', 'za', 'ng', 'ke', 'eg', 'sa', 'ae', 'cat', 'jobs', 'museum', 'travel', 'coop', 'aero', 'co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'com.au', 'net.au', 'org.au', 'co.nz', 'com.br', 'com.cn', 'com.sg', 'co.in',
+    ];
+
     const {
         state,
         normalizePriority,
@@ -247,7 +252,10 @@
 
     function renderDescription(description) {
         const renderLinkedText = (text) => {
-            const urlPattern = /(?:\bhttps?:\/\/[^\s<]+|\bwww\.[^\s<]+|\b(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:nl|com|de|org|fr|co\.uk)(?:\/[^\s<]*)?)/gi;
+            const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const prefixPattern = URL_PREFIXES.map(escapeRegex).join('|');
+            const suffixPattern = [...URL_SUFFIXES].sort((a, b) => b.length - a.length).map(escapeRegex).join('|');
+            const urlPattern = new RegExp(`(?:\\b(?:${prefixPattern})[^\\s<]+|\\b(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+(?:${suffixPattern})(?:/[^\\s<]*)?)`, 'gi');
             let result = '';
             let lastIndex = 0;
             for (const match of String(text).matchAll(urlPattern)) {
