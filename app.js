@@ -114,6 +114,7 @@
         categoryValidationAttempted = false;
         dialogTitle.textContent = task ? 'Edit task' : 'Add task';
         submitTaskButton.textContent = task ? 'Save changes' : 'Add task';
+        document.querySelector('#submit-task-top').textContent = submitTaskButton.textContent;
         form.reset();
         nameInput.classList.remove('name-invalid');
         priorityInput.value = task?.priority || 'medium';

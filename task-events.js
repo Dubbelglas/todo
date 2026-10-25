@@ -173,7 +173,7 @@
 
     document.querySelector('#add-task').addEventListener('click', () => openTaskDialog());
     document.querySelector('#cancel-task').addEventListener('click', closeTaskDialog);
-    document.querySelector('#close-task-dialog').addEventListener('click', closeTaskDialog);
+    document.querySelector('#cancel-task-top').addEventListener('click', closeTaskDialog);
     taskDialog.addEventListener('close', () => { state.editingId = null; });
 
     renameCategoryButton.addEventListener('click', openRenameCategoryDialog);

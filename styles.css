@@ -176,6 +176,10 @@ textarea {
     gap: 8px;
 }
 
+.form-actions-top {
+    justify-content: flex-end;
+}
+
 .delete-confirm-content {
     padding: 12px 18px 18px;
 }

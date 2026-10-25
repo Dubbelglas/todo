@@ -92,10 +92,12 @@
             <section class="panel dialog-panel">
                 <div class="dialog-heading">
                     <h2 id="task-dialog-title">Add task</h2>
-                    <button id="close-task-dialog" type="button" class="secondary-btn close-dialog"
-                        aria-label="Close">×</button>
                 </div>
                 <form id="todo-form" class="todo-form">
+                    <div class="form-actions form-actions-top field-full">
+                        <button type="button" id="cancel-task-top" class="secondary-btn">Cancel</button>
+                        <button type="submit" id="submit-task-top" class="primary-btn">Add task</button>
+                    </div>
                     <label class="field field-wide" for="todo-name">
                         <span>Task</span>
                         <input id="todo-name" name="name" type="text" maxlength="160"
