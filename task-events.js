@@ -255,6 +255,38 @@
     });
 
     const supportsLongPress = window.matchMedia('(pointer: coarse)').matches;
+    let deadlineLongPressTimer = null;
+    let deadlineLongPressStart = null;
+    const clearDeadlineLongPress = () => {
+        window.clearTimeout(deadlineLongPressTimer);
+        deadlineLongPressTimer = null;
+        deadlineLongPressStart = null;
+    };
+
+    if (supportsLongPress) {
+        deadlineInput.addEventListener('pointerdown', (event) => {
+            if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+            clearDeadlineLongPress();
+            deadlineLongPressStart = { x: event.clientX, y: event.clientY };
+            deadlineLongPressTimer = window.setTimeout(() => {
+                deadlineInput.value = '';
+                deadlineInput.dispatchEvent(new Event('input', { bubbles: true }));
+                deadlineInput.dispatchEvent(new Event('change', { bubbles: true }));
+                clearDeadlineLongPress();
+            }, 550);
+        });
+        deadlineInput.addEventListener('pointermove', (event) => {
+            if (!deadlineLongPressStart) return;
+            if (Math.hypot(event.clientX - deadlineLongPressStart.x, event.clientY - deadlineLongPressStart.y) > 12) {
+                clearDeadlineLongPress();
+            }
+        });
+        for (const eventName of ['pointerup', 'pointercancel', 'pointerleave']) {
+            deadlineInput.addEventListener(eventName, clearDeadlineLongPress);
+        }
+        deadlineInput.addEventListener('contextmenu', (event) => event.preventDefault());
+    }
+
     let longPressTimer = null;
     let longPressTriggered = false;
     let longPressClickResetTimer = null;
