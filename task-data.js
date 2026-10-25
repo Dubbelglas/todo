@@ -96,6 +96,7 @@
         expandedTaskIds: new Set(),
         sortMode: loadSortMode(),
         categoryFilter: '',
+        taskSearch: '',
     };
 
     function saveTasks() {
@@ -147,15 +148,21 @@
     }
 
     function getVisibleTasks() {
-        const tasks = state.categoryFilter
-            ? state.tasks.filter((task) => (task.category || 'General').trim() === state.categoryFilter)
-            : state.tasks;
-        return sortTasks(tasks.filter((task) => !task.periodic));
+        return sortTasks(state.tasks.filter((task) => !task.periodic
+            && matchesTaskFilters(task)));
     }
 
     function getVisiblePeriodicTasks() {
         return sortTasks(state.tasks.filter((task) => task.periodic
-            && (!state.categoryFilter || (task.category || 'General').trim() === state.categoryFilter)));
+            && matchesTaskFilters(task)));
+    }
+
+    function matchesTaskFilters(task) {
+        if (state.categoryFilter && (task.category || 'General').trim() !== state.categoryFilter) return false;
+        const query = state.taskSearch.trim().toLocaleLowerCase();
+        if (!query) return true;
+        return [task.name, task.description, task.category, task.deadline]
+            .some((value) => String(value || '').toLocaleLowerCase().includes(query));
     }
 
     function sortTasks(tasks) {

@@ -26,6 +26,7 @@
             periodicInput,
             list,
             periodicList,
+            taskSearchInput,
             tasksPane,
             periodicPane,
             clearCompletedButton,
@@ -41,6 +42,11 @@
             renameCategoryName,
         },
     } = window.TodoApp;
+
+    taskSearchInput.addEventListener('input', () => {
+        state.taskSearch = taskSearchInput.value;
+        render();
+    });
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();

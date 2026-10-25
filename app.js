@@ -19,6 +19,7 @@
     const periodicInput = document.querySelector('#todo-periodic');
     const list = document.querySelector('#todo-list');
     const periodicList = document.querySelector('#periodic-todo-list');
+    const taskSearchInput = document.querySelector('#task-search');
     const tasksPane = document.querySelector('.tasks-pane');
     const periodicPane = document.querySelector('.periodic-pane');
     const taskCount = document.querySelector('#task-count');
@@ -293,6 +294,7 @@
             periodicInput,
             list,
             periodicList,
+            taskSearchInput,
             taskCount,
             periodicTaskCount,
             tasksPane,
