@@ -64,7 +64,7 @@ textarea {
     left: 50%;
     bottom: 0;
     width: min(840px, calc(100vw - 24px));
-    padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+    padding: 12px max(88px, calc(68px + env(safe-area-inset-right))) max(12px, env(safe-area-inset-bottom)) 0;
     transform: translateX(-50%);
     background: linear-gradient(transparent, var(--bg) 12px);
 }
