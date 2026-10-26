@@ -57,6 +57,10 @@
             nameInput.focus();
             return;
         }
+        const description = descriptionInput.value
+            .split(/\r?\n/)
+            .map((line) => line.trimEnd())
+            .join('\n');
 
         let selectedCategory = categorySelect.value;
         if (selectedCategory === '__new__') {
@@ -76,12 +80,12 @@
                 task.name = name;
                 task.category = selectedCategory;
                 task.priority = normalizePriority(priorityInput.value);
-                task.description = descriptionInput.value.trim();
+                task.description = description;
                 task.deadline = deadlineInput.value;
                 task.periodic = periodicInput.checked;
             }
         } else {
-            state.tasks.unshift(createTask(name, priorityInput.value, descriptionInput.value.trim(), deadlineInput.value, selectedCategory, periodicInput.checked));
+            state.tasks.unshift(createTask(name, priorityInput.value, description, deadlineInput.value, selectedCategory, periodicInput.checked));
         }
         const saved = saveTasks();
         closeTaskDialog();
