@@ -33,7 +33,7 @@
     }
 
     function renderInline(text) {
-        const pattern = /(\*\*\*|___)(?=\S)(.+?\S)\1|(\*\*|__)(?=\S)(.+?\S)\3|~~(?=\S)(.+?\S)~~|(?<![\w])([*_])(?=\S)(.+?\S)\5(?![\w])/g;
+        const pattern = /(\*\*\*|___)(?=\S)(.+?\S)\1|(\*\*|__)(?=\S)(.+?\S)\3|~~(?=\S)(.+?\S)~~|(?<![\w])([*_])(?=\S)(.+?\S)\6(?![\w])/g;
         let html = '';
         let last = 0;
         for (const match of text.matchAll(pattern)) {
@@ -100,16 +100,39 @@
                 const listMatch = lines[index].match(/^(\s*)([-*+] |\d+[.)]\s+)(.+)$/);
                 if (listMatch) {
                     flushParagraph();
-                    const ordered = /^\d/.test(listMatch[2]);
-                    const tag = ordered ? 'ol' : 'ul';
-                    const items = [];
-                    while (index < lines.length) {
-                        const item = lines[index].match(/^\s*([-*+] |\d+[.)]\s+)(.+)$/);
-                        if (!item || /^\d/.test(item[1]) !== ordered) break;
-                        items.push(`<li>${renderInline(item[2])}</li>`);
-                        index += 1;
-                    }
-                    blocks.push(`<${tag}>${items.join('')}</${tag}>`);
+                    const indentWidth = (indent) => indent.replace(/\t/g, '    ').length;
+                    const parseList = (start, baseIndent) => {
+                        let cursor = start;
+                        const groups = [];
+                        let currentGroup = null;
+                        while (cursor < lines.length) {
+                            const item = lines[cursor].match(/^(\s*)([-*+] |\d+[.)]\s+)(.+)$/);
+                            if (!item) break;
+                            const itemIndent = indentWidth(item[1]);
+                            if (itemIndent < baseIndent) break;
+                            if (itemIndent > baseIndent) {
+                                const nested = parseList(cursor, itemIndent);
+                                if (currentGroup?.items.length) {
+                                    currentGroup.items[currentGroup.items.length - 1].children.push(nested.html);
+                                }
+                                cursor = nested.next;
+                                continue;
+                            }
+
+                            const tag = /^\d/.test(item[2]) ? 'ol' : 'ul';
+                            if (!currentGroup || currentGroup.tag !== tag) {
+                                currentGroup = { tag, items: [] };
+                                groups.push(currentGroup);
+                            }
+                            currentGroup.items.push({ text: item[3], children: [] });
+                            cursor += 1;
+                        }
+                        const html = groups.map((group) => `<${group.tag}>${group.items.map((entry) => `<li>${renderInline(entry.text)}${entry.children.join('')}</li>`).join('')}</${group.tag}>`).join('');
+                        return { html, next: cursor };
+                    };
+                    const parsed = parseList(index, indentWidth(listMatch[1]));
+                    blocks.push(parsed.html);
+                    index = parsed.next;
                 } else {
                     paragraph.push(lines[index++]);
                 }
