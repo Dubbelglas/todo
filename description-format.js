@@ -38,7 +38,7 @@
         let last = 0;
         for (const match of text.matchAll(pattern)) {
             html += renderLinkedText(text.slice(last, match.index));
-            const body = match[2] || match[4] || match[6] || match[7];
+            const body = match[2] || match[4] || match[5] || match[7];
             if (match[1]) html += `<strong><em>${renderLinkedText(body)}</em></strong>`;
             else {
                 const tag = match[3] ? 'strong' : match[5] ? 'del' : 'em';
